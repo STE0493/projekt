@@ -20,6 +20,7 @@ Ukázkové použití je uvedeno v souboru *examples.ipybnb*
 #### Doporučeno:
 - import projectLibrary
 - vytvořit objekt třídy *Mandelbrot* nebo *Julia* s odpovídajícími parametry
+- pro objekt třídy Julia je nutné nastavit komplexní konstantu Z pomocí funkce *set_constant()*
 - zavolat funkci objektu *interactive_plot()*
 
 Lze také vypsat divergenční matici množiny (funkce *compute()*) nebo vykreslit neinteraktivní graf (funkce *plot_set()*).
