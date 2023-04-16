@@ -39,9 +39,12 @@ class Set:
         self.Ci_slider
         self.zoom_slider
         self.k_slider
+        self.n_slider
         self.my_interact_manual
 
     Methods:
+        restart(Cr, Ci, zoom, n, k, colormap)
+            (re)assignes parameters of class
         plot_set()
             plots the set
         create_widgets()
@@ -62,6 +65,29 @@ class Set:
             n(int): resolution of final image (n*n)
             k(int): number of iterations
             colormap(str): colormap used in plot
+            zoom_expo_max(int)
+
+        Returns:
+            none
+        """
+        #assign parameters
+        self.restart(Cr, Ci, zoom, n, k, colormap)
+
+        #ignore unimportant warnings
+        warnings.filterwarnings("ignore")
+
+    def restart(self, Cr: Union[int,float], Ci: Union[int,float], zoom: int, n: int, k: int, colormap: str):
+        """
+        (Re)ssignes attributes of Set class
+
+        Parameters:
+            Cr(int or float): real part of complex number C
+            Ci(int or float): imaginary part of complex number C
+            zoom(int): desired zoom of final plot
+            n(int): resolution of final image (n*n)
+            k(int): number of iterations
+            colormap(str): colormap used in plot
+            zoom_expo_max(int)
 
         Returns:
             none
@@ -76,22 +102,16 @@ class Set:
         self.colormap = colormap
 
         #convert input data to axis limits
-        self.Cr_min = -(10000 - zoom)*0.0002 + Cr
-        self.Cr_max = (10000 - zoom)*0.0002 + Cr
-        self.Ci_min = -(10000 - zoom)*0.0002 - Ci
-        self.Ci_max = (10000 - zoom)*0.0002 - Ci
+        self.Cr_min = -(10**4 - zoom)*0.0002 + Cr
+        self.Cr_max = (10**4 - zoom)*0.0002 + Cr
+        self.Ci_min = -(10**4 - zoom)*0.0002 - Ci
+        self.Ci_max = (10**4 - zoom)*0.0002 - Ci
         #create meshgrid of all complex numbers in Cr and Ci bounds
         Cr = np.linspace(self.Cr_min, self.Cr_max, self.n)
         Ci = np.linspace(self.Ci_min, self.Ci_max, self.n)
         C_real, C_imag = np.meshgrid(Cr, Ci)
         #final array of all complex numbers C within given bounds
         self.C = C_real + 1j*C_imag
-        
-        #create matrix to store results of calculations
-        self.matrix = np.zeros((n,n))
-
-        #ignore unimportant warnings
-        warnings.filterwarnings("ignore")
 
         
     def plot_set(self):
@@ -121,12 +141,20 @@ class Set:
         #plot finished modified divergence matrix
         ax.imshow(self.matrix, cmap=self.colormap)
 
-    def create_widgets(self):
+    def create_widgets(self, Cr_slider_min: Union[int,float], Cr_slider_max: Union[int,float], Ci_slider_min: Union[int,float], Ci_slider_max: Union[int,float], k_slider_min: int, k_slider_max: int, n_slider_min: int, n_slider_max: int):
         """
-        Creates interactive plot of the set using ipywidgets
+        Creates widgtes for the interactive plot of the set
 
         Parameters:
-            none
+            all parameters represent the minimum and maximum values of given widgets
+            Cr_slider_min(int, float)
+            Cr_slider_max(int, float)
+            Ci_slider_min(int, float)
+            Ci_slider_max(int, float)
+            k_slider_min(int)
+            k_slider_max(int)
+            n_slider_min(int)
+            n_slider_max(int)
             
         Returns:
             none
@@ -134,10 +162,11 @@ class Set:
 
         #create desired widget elements
         self.colormap_text = widgets.Dropdown(options=["prism","flag","gist_ncar","hsv", "gist_rainbow"], description="colormap:")
-        self.Cr_slider = widgets.FloatSlider(min=-2, max=2, value=0.0, step=0.01, description="r coordinates")
-        self.Ci_slider = widgets.FloatSlider(min=-2, max=2, value=0.0, step=0.01, description="i coordinates")
+        self.Cr_slider = widgets.FloatSlider(min=Cr_slider_min, max=Cr_slider_max, value=0.0, step=0.01, description="r coordinates")
+        self.Ci_slider = widgets.FloatSlider(min=Ci_slider_min, max=Ci_slider_max, value=0.0, step=0.01, description="i coordinates")
         self.zoom_slider = widgets.IntSlider(min=0, max=9999, value=0, step=1, description="zoom")
-        self.k_slider = widgets.IntSlider(min=1, max=1000, value=100, step=1, description="iterations")
+        self.k_slider = widgets.IntSlider(min=k_slider_min, max=k_slider_max, value=100, step=1, description="iterations")
+        self.n_slider = widgets.IntSlider(min=n_slider_min, max=n_slider_max, value=1000, step=1, description="resolution")
         #create interactive plot of the Julia set
         self.my_interact_manual = interact_manual.options(manual_name="apply changes")
     
@@ -181,23 +210,8 @@ class Mandelbrot(Set):
         Returns:
             none
         """
-
-        self.n = n
-        #convert input data to axis limits
-        self.Cr_min = -(10000 - zoom)*0.0002 + Cr
-        self.Cr_max = (10000 - zoom)*0.0002 + Cr
-        self.Ci_min = -(10000 - zoom)*0.0002 - Ci
-        self.Ci_max = (10000 - zoom)*0.0002 - Ci
-        #create meshgrid of all complex numbers in Cr and Ci bounds
-        Cr = np.linspace(self.Cr_min, self.Cr_max, self.n)
-        Ci = np.linspace(self.Ci_min, self.Ci_max, self.n)
-        C_real, C_imag = np.meshgrid(Cr, Ci)
-        #final array of all complex numbers C within given bounds
-        self.C = C_real + 1j*C_imag
-        self.k = k
-        self.colormap = colormap
-        #create matrix to store results of calculations in CalculateMatrix()
-        self.matrix = np.zeros((n,n))
+        #reassign parameters
+        self.restart(Cr, Ci, zoom, n, k, colormap)
 
         #calculate divergence matrix
         self.matrix = self.calculate()
@@ -214,6 +228,8 @@ class Mandelbrot(Set):
         Returns:
             modified divergency matrix of Mandelbrot set
         """
+        #create matrix to store results of calculations in CalculateMatrix()
+        self.matrix = np.zeros((self.n,self.n))
 
         #as per the Mandelbrot set definition, z0 is always 0
         z = 0
@@ -231,18 +247,27 @@ class Mandelbrot(Set):
         return self.matrix
             
         
-    def interactive_plot(self):
+    def interactive_plot(self, Cr_slider_min: Union[int,float], Cr_slider_max: Union[int,float], Ci_slider_min: Union[int,float], Ci_slider_max: Union[int,float], k_slider_min: int, k_slider_max: int, n_slider_min: int, n_slider_max: int):
         """
         Creates interactive plot of the Mandelbrot set using ipywidgets
 
         Parameters:
-            none
+            all parameters represent the minimum and maximum values of given widgets
+            Cr_slider_min(int, float) - recommended -2
+            Cr_slider_max(int, float) - recommended 2
+            Ci_slider_min(int, float) - recommended -2
+            Ci_slider_max(int, float) - recommended 2
+            k_slider_min(int) - recommended 1
+            k_slider_max(int) - recommended 1000
+            n_slider_min(int) - recommended 1
+            n_slider_max(int) - recommended 2000
             
         Returns:
             none
         """
-        self.create_widgets()
-        self.my_interact_manual(self.run, Cr = self.Cr_slider, Ci = self.Ci_slider, zoom = self.zoom_slider, n = fixed(1000), k = self.k_slider, colormap = self.colormap_text)
+        self.create_widgets(Cr_slider_min, Cr_slider_max, Ci_slider_min, Ci_slider_max, k_slider_min, k_slider_max, n_slider_min, n_slider_max)
+        self.my_interact_manual(self.run, Cr = self.Cr_slider, Ci = self.Ci_slider, zoom = self.zoom_slider, n = self.n_slider, k = self.k_slider, colormap = self.colormap_text)
+
 
 class Julia(Set):
     """
@@ -307,28 +332,10 @@ class Julia(Set):
         Returns:
             none
         """
-
-        self.n = n
-        self.k = k
-        self.colormap = colormap
-
-        #convert input data to axis limits
-        self.Cr_min = -(10000 - zoom)*0.0002 + Cr
-        self.Cr_max = (10000 - zoom)*0.0002 + Cr
-        self.Ci_min = -(10000 - zoom)*0.0002 - Ci
-        self.Ci_max = (10000 - zoom)*0.0002 - Ci
-        #create meshgrid of all complex numbers in Cr and Ci bounds
-        Cr = np.linspace(self.Cr_min, self.Cr_max, self.n)
-        Ci = np.linspace(self.Ci_min, self.Ci_max, self.n)
-        C_real, C_imag = np.meshgrid(Cr, Ci)
-        #final array of all complex numbers Z within given bounds
-        self.C = C_real + 1j*C_imag
-
-        #define complex constant C
-        self.Z = Zr+ + 1j*Zi
-
-        #create matrix to store results of calculations in calculate()
-        self.matrix = np.zeros((n,n))
+        #reassign parameters
+        self.restart(Cr, Ci, zoom, n, k, colormap)
+        #reassign constant
+        self.set_constant(Zr, Zi)
 
         #calculate divergence matrix
         self.matrix = self.calculate()
@@ -346,6 +353,9 @@ class Julia(Set):
             modified divergency matrix of Julia set
         """
 
+        #create matrix to store results of calculations in CalculateMatrix()
+        self.matrix = np.zeros((self.n,self.n))
+
         #iterate for given number of times (k)
         for i in range(self.k):
             #compute next number as per the Julia set deifnition
@@ -359,18 +369,26 @@ class Julia(Set):
 
         return self.matrix
         
-    def interactive_plot(self):
+    def interactive_plot(self, Cr_slider_min: Union[int, float], Cr_slider_max: Union[int, float], Ci_slider_min: Union[int, float], Ci_slider_max: Union[int, float], k_slider_min: int, k_slider_max: int, n_slider_min: int, n_slider_max: int):
         """
         Creates interactive plot of the Julia set using ipywidgets
-
+        
         Parameters:
-            none
+            all parameters represent the minimum and maximum values of given widgets
+            Cr_slider_min(int, float) - recommended -2
+            Cr_slider_max(int, float) - recommended 2
+            Ci_slider_min(int, float) - recommended -2
+            Ci_slider_max(int, float) - recommended 2
+            k_slider_min(int) - recommended 1
+            k_slider_max(int) - recommended 1000
+            n_slider_min(int) - recommended 1
+            n_slider_max(int) - recommended 2000
             
         Returns:
             none
         """
-        self.create_widgets()
-        Zr_slider =  widgets.FloatText(min=-5.0, max=5.0, value=-0.4, step=0.01, description="real part of Z")
-        Zi_slider =  widgets.FloatText(min=-5.0, max=5.0, value=0.6, step=0.01, description="imaginary part of Z")
+        self.create_widgets(Cr_slider_min, Cr_slider_max, Ci_slider_min, Ci_slider_max, k_slider_min, k_slider_max, n_slider_min, n_slider_max)
+        Zr_slider =  widgets.FloatText(value=-0.4, step=0.01, description="Z-real p.")
+        Zi_slider =  widgets.FloatText(value=0.6, step=0.01, description="Z-imaginary p.")
 
-        self.my_interact_manual(self.run, Cr = self.Cr_slider, Ci = self.Ci_slider, n = fixed(1000), k=self.k_slider, zoom = self.zoom_slider, Zr=Zr_slider, Zi=Zi_slider, colormap = self.colormap_text)
+        self.my_interact_manual(self.run, Cr = self.Cr_slider, Ci = self.Ci_slider, n = self.n_slider, k=self.k_slider, zoom = self.zoom_slider, Zr=Zr_slider, Zi=Zi_slider, colormap = self.colormap_text)
