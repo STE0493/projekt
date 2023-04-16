@@ -17,7 +17,9 @@ class Set:
         import matplotlib.cm
         from typing import Union
         import ipywidgets as widgets
-        from ipywidgets import interact, interactive, fixed, interact_manual
+        from ipywidgets import interact, interactive, fixed, interact_manual      
+        from numpy.typing import NDArray
+        import warnings
 
     Attributes:
         Cr(int or float): real part of complex number C (representing the center point of the plot)
@@ -161,14 +163,14 @@ class Set:
         """
 
         #create desired widget elements
-        self.colormap_text = widgets.Dropdown(options=["prism","flag","gist_ncar","hsv", "gist_rainbow"], description="colormap:")
-        self.Cr_slider = widgets.FloatSlider(min=Cr_slider_min, max=Cr_slider_max, value=0.0, step=0.01, description="r coordinates")
-        self.Ci_slider = widgets.FloatSlider(min=Ci_slider_min, max=Ci_slider_max, value=0.0, step=0.01, description="i coordinates")
-        self.zoom_slider = widgets.IntSlider(min=0, max=9999, value=0, step=1, description="zoom")
-        self.k_slider = widgets.IntSlider(min=k_slider_min, max=k_slider_max, value=100, step=1, description="iterations")
-        self.n_slider = widgets.IntSlider(min=n_slider_min, max=n_slider_max, value=1000, step=1, description="resolution")
+        self.colormap_text = widgets.Dropdown(options=["prism","flag","gist_ncar","hsv", "gist_rainbow"], description='colormap')
+        self.Cr_slider = widgets.FloatSlider(min=Cr_slider_min, max=Cr_slider_max, value=0.0, step=0.01, description='r coordinates')
+        self.Ci_slider = widgets.FloatSlider(min=Ci_slider_min, max=Ci_slider_max, value=0.0, step=0.01, description='i coordinates')
+        self.zoom_slider = widgets.IntSlider(min=0, max=9999, value=0, step=1, description='zoom')
+        self.k_slider = widgets.IntSlider(min=k_slider_min, max=k_slider_max, value=100, step=1, description='iterations')
+        self.n_slider = widgets.IntSlider(min=n_slider_min, max=n_slider_max, value=1000, step=1, description='resolution')
         #create interactive plot of the Julia set
-        self.my_interact_manual = interact_manual.options(manual_name="apply changes")
+        self.my_interact_manual = interact_manual.options(manual_name='apply changes')
     
 class Mandelbrot(Set):
     """
@@ -388,7 +390,7 @@ class Julia(Set):
             none
         """
         self.create_widgets(Cr_slider_min, Cr_slider_max, Ci_slider_min, Ci_slider_max, k_slider_min, k_slider_max, n_slider_min, n_slider_max)
-        Zr_slider =  widgets.FloatText(value=-0.4, step=0.01, description="Z-real p.")
-        Zi_slider =  widgets.FloatText(value=0.6, step=0.01, description="Z-imaginary p.")
+        Zr_slider =  widgets.FloatText(value=-0.4, step=0.01, description='Z-real')
+        Zi_slider =  widgets.FloatText(value=0.6, step=0.01, description='Z-imaginary')
 
         self.my_interact_manual(self.run, Cr = self.Cr_slider, Ci = self.Ci_slider, n = self.n_slider, k=self.k_slider, zoom = self.zoom_slider, Zr=Zr_slider, Zi=Zi_slider, colormap = self.colormap_text)
